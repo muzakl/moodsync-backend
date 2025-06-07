@@ -1,34 +1,22 @@
-import dotenv from "dotenv";
+import express from 'express';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import authRoutes from './routes/auth.routes.js';
+import { connectToDatabase } from './services/database.js';
+
 dotenv.config();
-import express from "express";
-import cors from "cors";
-import bodyParser from "body-parser";
-import { connectToDatabase } from "./services/database.js";
-import authRoutes from "./routes/auth.routes.js";
-
-
 const app = express();
-const PORT = process.env.PORT || 5000;
-
-connectToDatabase()
-    .then(() => console.log(" Connected to MongoDB"))
-    .catch((err) => console.error(" MongoDB connection failed:", err));
-
 
 app.use(cors());
 app.use(express.json());
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(express.static("public"));
 
+await connectToDatabase();
 
-app.use("/api/auth", authRoutes);
+app.use('/api/auth', authRoutes);
 
-
-app.get("/", (req, res) => {
-    res.json({ message: "API is running " });
+app.get('/', (req, res) => {
+    res.send('API is running');
 });
 
-
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
-});
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

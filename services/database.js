@@ -1,17 +1,14 @@
-import {MongoClient} from "mongodb";
+import mongoose from 'mongoose';
 
-const uri = `mongodb+srv://nikoo:Nikson123@cluster0.f6xsw.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0`
-const client = new MongoClient(uri);
-
-async function connectToDatabase() {
+export const connectToDatabase = async () => {
     try {
-        await client.connect();
-        console.log('Connected to the database');
-        return client.db('Moodsync');
-    } catch (error) {
-        console.error('Error connecting to the database:', error);
-        throw error;
+        await mongoose.connect(process.env.MONGO_URI, {
+            useNewUrlParser: true,
+            useUnifiedTopology: true,
+        });
+        console.log('Connected to MongoDB with Mongoose');
+    } catch (err) {
+        console.error('Database connection error:', err);
+        throw err;
     }
-}
-
-export {connectToDatabase, client};
+};
