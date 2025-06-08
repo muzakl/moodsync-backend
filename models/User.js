@@ -1,10 +1,27 @@
 import mongoose from 'mongoose';
 
 const userSchema = new mongoose.Schema({
-    username: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
-    spotifyId: { type: String },
-    createdAt: { type: Date, default: Date.now }
+    username: String,
+    email: {
+        type: String,
+        required: function () {
+            return !!this.oauthProvider;
+        },
+        unique: true,
+        sparse: true
+    },
+    password: {
+        type: String,
+        required: function () {
+            return !this.oauthProvider;
+        }
+    },
+    oauthProvider: {
+        type: String,
+        enum: ['google', 'spotify', null]
+    },
+    spotifyId: String,
+    spotifyAccessToken: String,
+    spotifyRefreshToken: String
 });
-
-export default mongoose.model('User', userSchema);
+export const User = mongoose.models.User || mongoose.model('User', userSchema);

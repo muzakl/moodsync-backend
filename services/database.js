@@ -6,7 +6,7 @@ export const connectToDatabase = async () => {
             useNewUrlParser: true,
             useUnifiedTopology: true,
         });
-        console.log('Connected to MongoDB with Mongoose');
+        console.log('Connected to DB:', mongoose.connection.db.databaseName);
     } catch (err) {
         console.error('Database connection error:', err);
         throw err;
