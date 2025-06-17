@@ -52,6 +52,7 @@ export const spotifyLogin = (req, res) => {
 
     res.redirect(authUrl);
 };
+
 export const spotifyCallback = async (req, res) => {
     const code = req.query.code;
     const userId = req.query.state;
@@ -61,7 +62,7 @@ export const spotifyCallback = async (req, res) => {
     }
 
     try {
-        const response = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
+        const tokenRes = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
             grant_type: 'authorization_code',
             code,
             redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
@@ -71,7 +72,7 @@ export const spotifyCallback = async (req, res) => {
             headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
         });
 
-        const { access_token, refresh_token } = response.data;
+        const { access_token, refresh_token } = tokenRes.data;
 
         const profileRes = await axios.get('https://api.spotify.com/v1/me', {
             headers: { Authorization: `Bearer ${access_token}` }
@@ -85,10 +86,10 @@ export const spotifyCallback = async (req, res) => {
             spotifyRefreshToken: refresh_token
         });
 
-        return res.redirect('http://localhost:5173/playlist');
+        res.redirect('http://localhost:5173/playlist');
     } catch (err) {
-        console.error('Spotify callback error:', err.message);
-        return res.status(500).json({ error: 'Spotify login failed' });
+        console.error('Spotify callback error:', err.response?.data || err.message);
+        res.status(500).json({ error: 'Spotify login failed' });
     }
 };
 export const googleLogin = (req, res) => {
