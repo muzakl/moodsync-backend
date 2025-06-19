@@ -18,5 +18,16 @@ app.get('/', (req, res) => {
     res.send('API is running');
 });
 
+app.post('/test-ai', async (req, res) => {
+    const { description } = req.body;
+
+    try {
+        const tracks = await getPlaylistTracks(description);
+        res.json({ tracks });
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
