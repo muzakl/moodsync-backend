@@ -4,7 +4,8 @@ import {
     loginUser,
     spotifyCallback,
     spotifyLogin,
-    googleCallback, googleLogin, getUserSpotifyTracks, getUserInfo
+    googleCallback, googleLogin,
+    // getUserSpotifyTracks, getUserInfo
 } from '../controllers/auth.controller.js';
 
 const router = express.Router();
@@ -15,7 +16,7 @@ router.get('/spotify/login', spotifyLogin);
 router.get('/spotify/callback', spotifyCallback);
 router.get('/google', googleLogin);
 router.get('/google/callback', googleCallback);
-router.get('/getUserSpotifyTracks',getUserSpotifyTracks);
-router.get('/user/:id',getUserInfo);
+// router.get('/getUserSpotifyTracks',getUserSpotifyTracks);
+// router.get('/user/:id',getUserInfo);
 
 export default router;
