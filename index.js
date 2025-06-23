@@ -13,8 +13,8 @@ app.use(express.json());
 
 await connectToDatabase();
 
-app.use('/api/auth', authRoutes);
-app.use('/api/user', userRoutes);
+app.use("/api/auth", authRoutes);
+app.use("/api/user", userRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
