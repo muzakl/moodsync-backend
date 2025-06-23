@@ -2,6 +2,7 @@ import express from 'express';
 import dotenv from 'dotenv';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
+import userRoutes from './routes/user.routes.js';
 import { connectToDatabase } from './services/database.js';
 
 dotenv.config();
@@ -13,6 +14,7 @@ app.use(express.json());
 await connectToDatabase();
 
 app.use('/api/auth', authRoutes);
+app.use('/api/user', userRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
