@@ -145,9 +145,7 @@ export const googleCallback = async (req, res) => {
         });
 
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(
-            `${frontendUrl}/login?token=${token}&userId=${user._id}`
-        );
+        res.redirect(`${frontendUrl}/login?token=${token}&userId=${user._id}`);
     } catch (err) {
         console.error('Google callback error:', {
             message: err.message,
@@ -157,38 +155,38 @@ export const googleCallback = async (req, res) => {
         res.status(500).json({ error: 'Google login failed' });
     }
 };
-// export const getUserSpotifyTracks = async (req, res) => {
-//     try {
-//         const user = await User.findById(req.user.id);
-//
-//         if (!user.spotifyAccessToken) {
-//             return res.status(400).json({ error: 'Spotify not linked.' });
-//         }
-//
-//         const response = await axios.get('https://api.spotify.com/v1/me/tracks?limit=20', {
-//             headers: {
-//                 Authorization: `Bearer ${user.spotifyAccessToken}`
-//             }
-//         });
-//
-//         res.json(response.data);
-//     } catch (err) {
-//         console.error('Error fetching tracks:', err.response?.data || err.message);
-//         res.status(500).json({ error: 'Failed to fetch Spotify tracks' });
-//     }
-// };
-//
-// export const getUserInfo = async (req, res) => {
-//     try {
-//         const user = await User.findById(req.params.id);
-//         if (!user) return res.status(404).json({ error: 'User not found' });
-//         res.json({
-//             userId: user._id,
-//             username: user.username,
-//             spotifyLinked: !!user.spotifyId
-//         });
-//     } catch (err) {
-//         console.error(err);
-//         res.status(500).json({ error: 'Server error' });
-//     }
-// };
+export const getUserSpotifyTracks = async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+
+        if (!user.spotifyAccessToken) {
+            return res.status(400).json({ error: 'Spotify not linked.' });
+        }
+
+        const response = await axios.get('https://api.spotify.com/v1/me/tracks?limit=20', {
+            headers: {
+                Authorization: `Bearer ${user.spotifyAccessToken}`
+            }
+        });
+
+        res.json(response.data);
+    } catch (err) {
+        console.error('Error fetching tracks:', err.response?.data || err.message);
+        res.status(500).json({ error: 'Failed to fetch Spotify tracks' });
+    }
+};
+
+export const getUserInfo = async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id);
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.json({
+            userId: user._id,
+            username: user.username,
+            spotifyLinked: !!user.spotifyId
+        });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Server error' });
+    }
+};
