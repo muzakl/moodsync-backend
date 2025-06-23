@@ -126,18 +126,20 @@ export const googleCallback = async (req, res) => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             }
         );
+
         const { access_token } = tokenResponse.data;
 
         const userInfoResponse = await axios.get(
             'https://www.googleapis.com/oauth2/v1/userinfo',
             { headers: { Authorization: `Bearer ${access_token}` } }
         );
+
         const { email, name } = userInfoResponse.data;
 
-        let user = await User.findOne({ email });
+        const user = await User.findOne({ email });
         if (!user) {
-            user = new User({ username: name, email, oauthProvider: 'google' });
-            await user.save();
+            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
+            return res.redirect(`${frontendUrl}/register?error=user_not_registered`);
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
