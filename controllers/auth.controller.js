@@ -35,7 +35,7 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({error: 'Invalid credentials'});
 
         const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '7d'});
-        res.json({token, userId: user._id});
+        res.status(200).json({ token, userId: user._id });
         console.log('User logged in:', user._id);
     } catch (err) {
         console.error('Login error:', err);
@@ -92,7 +92,12 @@ export const spotifyCallback = async (req, res) => {
 
         res.redirect('http://localhost:5173/playlist');
     } catch (err) {
-        console.error('Spotify callback error:', err.response?.data || err.message);
+        console.error('Spotify callback error:', {
+            message: err.message,
+            data: err.response?.data,
+            status: err.response?.status,
+            stack: err.stack
+        });
         res.status(500).json({ error: 'Spotify login failed' });
     }
 };
@@ -136,10 +141,16 @@ export const googleCallback = async (req, res) => {
 
         const { email, name } = userInfoResponse.data;
 
-        const user = await User.findOne({ email });
+        let user = await User.findOne({ email });
+
         if (!user) {
-            const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-            return res.redirect(`${frontendUrl}/register?error=user_not_registered`);
+            user = new User({
+                email,
+                username: name,
+                oauthProvider: 'google',
+            });
+
+            await user.save();
         }
 
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
@@ -147,13 +158,14 @@ export const googleCallback = async (req, res) => {
         });
 
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(`${frontendUrl}/login?token=${token}&userId=${user._id}`);
+        return res.redirect(`${frontendUrl}/login?token=${token}&userId=${user._id}`);
     } catch (err) {
         console.error('Google callback error:', {
             message: err.message,
             response: err.response?.data,
             stack: err.stack,
         });
+
         res.status(500).json({ error: 'Google login failed' });
     }
 };
@@ -181,14 +193,15 @@ export const getUserSpotifyTracks = async (req, res) => {
 export const getUserInfo = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
         res.json({
             userId: user._id,
             username: user.username,
-            spotifyLinked: !!user.spotifyId
+            spotifyLinked: !!user.spotifyId,
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        console.error("getUserInfo error:", err);
+        res.status(500).json({ error: "Server error" });
     }
 };
