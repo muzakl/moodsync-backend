@@ -91,6 +91,9 @@ export const googleCallback = async (req, res) => {
         res.redirect(`${process.env.FRONTEND_URL}/login`);
     }
 };
+
+
+
 export const getUserInfo = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
