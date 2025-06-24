@@ -94,6 +94,7 @@ export const googleCallback = async (req, res) => {
 
 
 
+// Get User Info
 export const getUserInfo = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
