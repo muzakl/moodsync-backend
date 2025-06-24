@@ -1,47 +1,82 @@
-import axios from 'axios';
 import dotenv from 'dotenv';
 dotenv.config();
+import axios from 'axios';
 
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const AI_API_KEY = process.env.AI_API_KEY;
+
+const playlist = [
+    { id: 1, artist: "Artist 1", track: "Song A", duration: '2:30' },
+    { id: 2, artist: "Artist 2", track: "Song B", duration: '2:30' },
+    { id: 3, artist: "Artist 3", track: "Song C", duration: '2:30' },
+    { id: 4, artist: "Artist 4", track: "Song D", duration: '2:30' },
+    { id: 5, artist: "Artist 5", track: "Song E", duration: '2:30' },
+];
+
 
 async function getPlaylistTracks(description) {
     const prompt = `
-Suggest 5 popular Spotify tracks (artist and track name) that fit this description: "${description}". 
-Format the output as a JSON array like:
-[
-  {"artist": "Artist1", "track": "Track1"},
-  {"artist": "Artist2", "track": "Track2"},
-  ...
-]
+User description: "${description}"
+
+Select exactly 3 songs that best match the description.
+Return a JSON array of objects with "artist", "track", and "duration" fields (format duration as mm:ss).
+If duration is unknown, use "2:30".
+
+Songs:
+${playlist.map(s => `- ${s.track} by ${s.artist}`).join('\n')}
+
+Answer:
 `;
+
 
     try {
         const response = await axios.post(
-            'https://api.openai.com/v1/chat/completions',
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${AI_API_KEY}`,
             {
-                model: 'gpt-4o-mini',
-                messages: [{ role: 'user', content: prompt }],
-                max_tokens: 300,
+                contents: [
+                    {
+                        role: "user",
+                        parts: [{ text: prompt }],
+                    }
+                ]
             },
             {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${OPENAI_API_KEY}`,
-                },
+                }
             }
         );
 
-        const content = response.data.choices[0].message.content;
+        const text = response.data.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        const jsonStart = content.indexOf('[');
-        const jsonEnd = content.lastIndexOf(']') + 1;
-        const jsonString = content.substring(jsonStart, jsonEnd);
+        if (!text) throw new Error("No response from AI");
 
-        return JSON.parse(jsonString);
+        const jsonStart = text.indexOf('[');
+        const jsonEnd = text.lastIndexOf(']') + 1;
 
-    } catch (error) {
-        console.error('OpenAI error:', error.response?.data || error.message);
-        throw new Error('Failed to get data from OpenAI');
+        if (jsonStart === -1 || jsonEnd === -1) {
+            throw new Error('No valid JSON array found in AI response');
+        }
+
+        const jsonString = text.substring(jsonStart, jsonEnd);
+
+        let selectedSongs;
+        try {
+            selectedSongs = JSON.parse(jsonString);
+        } catch (parseError) {
+            console.error('Failed to parse AI JSON:', parseError.message);
+            throw new Error('AI returned malformed JSON');
+        }
+
+        return selectedSongs;
+
+    } catch (err) {
+        console.error('Gemini API error:', err.response?.data || err.message);
+
+        if (process.env.NODE_ENV === 'development') {
+            return playlist.slice(0, 3);
+        }
+
+        throw new Error('Failed to get AI matches');
     }
 }
 

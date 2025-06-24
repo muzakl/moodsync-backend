@@ -1,20 +1,21 @@
-import express from 'express';
 import dotenv from 'dotenv';
+dotenv.config();
+import express from 'express';
 import cors from 'cors';
 import authRoutes from './routes/auth.routes.js';
-import userRoutes from './routes/user.routes.js';
+import playlistRoutes from './routes/playlist.routes.js';
+import getPlaylistTracks from './openAI/getPlaylistTracks.js';
 import { connectToDatabase } from './services/database.js';
-
-dotenv.config();
 const app = express();
+const PORT = process.env.PORT || 5200;
 
 app.use(cors());
 app.use(express.json());
 
-await connectToDatabase();
 
-app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use('/api/auth', authRoutes);
+
+app.use('/api/playlist', playlistRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
@@ -22,14 +23,21 @@ app.get('/', (req, res) => {
 
 app.post('/test-ai', async (req, res) => {
     const { description } = req.body;
+    if (!description) return res.status(400).json({ error: 'Description is required' });
 
     try {
         const tracks = await getPlaylistTracks(description);
         res.json({ tracks });
     } catch (err) {
+        console.error('AI Error:', err.message);
         res.status(500).json({ error: err.message });
     }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+connectToDatabase()
+    .then(() => {
+        app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+    })
+    .catch((err) => {
+        console.error(' Failed to connect to DB:', err.message);
+        process.exit(1);});
