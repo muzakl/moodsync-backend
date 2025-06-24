@@ -12,3 +12,4 @@ export const connectToDatabase = async () => {
         throw err;
     }
 };
+
