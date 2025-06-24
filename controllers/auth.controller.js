@@ -35,7 +35,7 @@ export const loginUser = async (req, res) => {
             return res.status(401).json({error: 'Invalid credentials'});
 
         const token = jwt.sign({id: user._id}, process.env.JWT_SECRET, {expiresIn: '7d'});
-        res.json({token, userId: user._id});
+        res.status(200).json({ token, userId: user._id });
         console.log('User logged in:', user._id);
     } catch (err) {
         console.error('Login error:', err);
@@ -45,66 +45,79 @@ export const loginUser = async (req, res) => {
 
 export const spotifyLogin = (req, res) => {
     const userId = req.query.userId;
-
-    if (!userId) {
-        return res.status(400).json({ error: "Missing userId for Spotify linking" });
-    }
+    if (!userId) return res.status(400).json({ error: 'Missing userId for Spotify linking' });
 
     const scope = 'user-read-email user-read-private';
     const redirectUri = encodeURIComponent(process.env.SPOTIFY_REDIRECT_URI);
 
     const authUrl = `https://accounts.spotify.com/authorize?client_id=${process.env.SPOTIFY_CLIENT_ID}&response_type=code&redirect_uri=${redirectUri}&scope=${scope}&state=${userId}`;
-
     res.redirect(authUrl);
 };
+
 export const spotifyCallback = async (req, res) => {
     const code = req.query.code;
     const userId = req.query.state;
 
-    if (!code || !userId) {
-        return res.status(400).json({ error: 'Missing code or user ID' });
-    }
+    if (!code || !userId) return res.status(400).json({ error: 'Missing code or user ID' });
 
     try {
-        const tokenRes = await axios.post('https://accounts.spotify.com/api/token', new URLSearchParams({
-            grant_type: 'authorization_code',
-            code,
-            redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
-            client_id: process.env.SPOTIFY_CLIENT_ID,
-            client_secret: process.env.SPOTIFY_CLIENT_SECRET
-        }).toString(), {
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
-        });
+        const tokenRes = await axios.post(
+            'https://accounts.spotify.com/api/token',
+            new URLSearchParams({
+                grant_type: 'authorization_code',
+                code,
+                redirect_uri: process.env.SPOTIFY_REDIRECT_URI,
+                client_id: process.env.SPOTIFY_CLIENT_ID,
+                client_secret: process.env.SPOTIFY_CLIENT_SECRET,
+            }).toString(),
+            { headers: { 'Content-Type': 'application/x-www-form-urlencoded' } }
+        );
 
         const { access_token, refresh_token } = tokenRes.data;
 
         const profileRes = await axios.get('https://api.spotify.com/v1/me', {
-            headers: { Authorization: `Bearer ${access_token}` }
+            headers: { Authorization: `Bearer ${access_token}` },
         });
 
         const spotifyId = profileRes.data.id;
+        const email = profileRes.data.email;
 
-        await User.findByIdAndUpdate(userId, {
-            spotifyId,
-            spotifyAccessToken: access_token,
-            spotifyRefreshToken: refresh_token
-        });
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            {
+                email: email || undefined,
+                spotifyId,
+                spotifyAccessToken: access_token,
+                spotifyRefreshToken: refresh_token,
+                oauthProvider: 'spotify'
+            },
+            { new: true, runValidators: true }
+        );
+
+        if (!updatedUser) {
+            return res.status(404).json({ error: 'User not found' });
+        }
 
         res.redirect('http://localhost:5173/playlist');
     } catch (err) {
-        console.error('Spotify callback error:', err.response?.data || err.message);
+        console.error('Spotify callback error:', {
+            message: err.message,
+            data: err.response?.data,
+            status: err.response?.status,
+            stack: err.stack,
+        });
         res.status(500).json({ error: 'Spotify login failed' });
     }
 };
 export const googleLogin = (req, res) => {
-    const redirectUri = encodeURIComponent("http://localhost:5000/api/auth/google/callback");
     const clientId = process.env.GOOGLE_CLIENT_ID;
+    const redirectUri = encodeURIComponent(process.env.GOOGLE_REDIRECT_URI);
     const scope = encodeURIComponent("https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile");
 
     const authUrl = `https://accounts.google.com/o/oauth2/auth?response_type=code&client_id=${clientId}&redirect_uri=${redirectUri}&scope=${scope}`;
-
     res.redirect(authUrl);
 };
+
 export const googleCallback = async (req, res) => {
     try {
         const code = req.query.code;
@@ -126,17 +139,24 @@ export const googleCallback = async (req, res) => {
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
             }
         );
+
         const { access_token } = tokenResponse.data;
 
         const userInfoResponse = await axios.get(
             'https://www.googleapis.com/oauth2/v1/userinfo',
             { headers: { Authorization: `Bearer ${access_token}` } }
         );
-        const { email, name } = userInfoResponse.data;
 
+        const { email, name } = userInfoResponse.data;
         let user = await User.findOne({ email });
+
         if (!user) {
-            user = new User({ username: name, email, oauthProvider: 'google' });
+            user = new User({
+                email,
+                username: name,
+                oauthProvider: 'google',
+            });
+
             await user.save();
         }
 
@@ -145,15 +165,14 @@ export const googleCallback = async (req, res) => {
         });
 
         const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:5173';
-        res.redirect(
-            `${frontendUrl}/login?token=${token}&userId=${user._id}`
-        );
+        return res.redirect(`${frontendUrl}/login?token=${token}&userId=${user._id}`);
     } catch (err) {
         console.error('Google callback error:', {
             message: err.message,
             response: err.response?.data,
             stack: err.stack,
         });
+
         res.status(500).json({ error: 'Google login failed' });
     }
 };
@@ -181,14 +200,15 @@ export const getUserSpotifyTracks = async (req, res) => {
 export const getUserInfo = async (req, res) => {
     try {
         const user = await User.findById(req.params.id);
-        if (!user) return res.status(404).json({ error: 'User not found' });
+        if (!user) return res.status(404).json({ error: "User not found" });
+
         res.json({
             userId: user._id,
             username: user.username,
-            spotifyLinked: !!user.spotifyId
+            spotifyLinked: !!user.spotifyId,
         });
     } catch (err) {
-        console.error(err);
-        res.status(500).json({ error: 'Server error' });
+        console.error("getUserInfo error:", err);
+        res.status(500).json({ error: "Server error" });
     }
 };
