@@ -55,11 +55,12 @@ export const searchSpotifyTracks = async (req, res) => {
 
             const tracks = response.data.tracks.items.map((track) => ({
                 name: track.name,
-                artists: track.artists.map((a) => a.name).join(', '),
+                artist: track.artists.map((a) => a.name).join(', '),
                 url: track.external_urls?.spotify || '',
                 preview_url: track.preview_url || '',
-                album_image: track.album.images[0]?.url || '',
+                album_image: track.album.images[0]?.url,
             }));
+
 
             allTracks.push(...tracks);
 
