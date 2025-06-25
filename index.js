@@ -14,7 +14,7 @@ app.use(cors());
 app.use(express.json());
 
 
-console.log("✅ Mounting /api/auth routes");
+console.log(" Mounting /api/auth routes");
 app.use('/api/auth', authRoutes);
 app.use('/api/playlist', playlistRoutes);
 app.use('/uploads', express.static('uploads'));
