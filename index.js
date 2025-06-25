@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 import express from 'express';
 import cors from 'cors';
+import spotifyRoutes from './routes/spotify.routes.js';
 import authRoutes from './routes/auth.routes.js';
 import playlistRoutes from './routes/playlist.routes.js';
 import getPlaylistTracks from './openAI/getPlaylistTracks.js';
@@ -17,7 +18,7 @@ console.log("✅ Mounting /api/auth routes");
 app.use('/api/auth', authRoutes);
 app.use('/api/playlist', playlistRoutes);
 app.use('/uploads', express.static('uploads'));
-
+app.use('/api/spotify', spotifyRoutes);
 
 app.get('/', (req, res) => {
     res.send('API is running');
