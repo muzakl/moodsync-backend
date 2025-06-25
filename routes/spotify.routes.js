@@ -3,6 +3,6 @@ import { searchSpotifyTracks } from '../controllers/spotify.controller.js';
 
 const router = express.Router();
 
-router.get('/search-tracks', searchSpotifyTracks); // GET /api/spotify/search-tracks?q=...
+router.get('/search-tracks', searchSpotifyTracks);
 
 export default router;

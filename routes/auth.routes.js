@@ -5,7 +5,7 @@ import {
     googleCallback,
     googleLogin,
     getUserInfo,
-    updateUserProfile // ✅ Add this line
+    updateUserProfile
 
 } from '../controllers/auth.controller.js';
 import {authenticateUser} from "../middlwear/auth.js";
@@ -16,7 +16,7 @@ console.log("✅ auth.routes.js file loaded");
 router.post('/register', (req, res, next) => {
     console.log("🔥 /api/auth/register hit");
     next();
-}, registerUser); // ✅ keep this one
+}, registerUser);
 
 router.post('/login', loginUser);
 router.get('/google', googleLogin);

@@ -39,10 +39,10 @@ app.post('/test-ai', async (req, res) => {
 
 connectToDatabase()
     .then(() => {
-        app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+        app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
     })
     .catch((err) => {
-        console.error('❌ Failed to connect to DB:', err.message);
+        console.error(' Failed to connect to DB:', err.message);
         process.exit(1);
     });
 

@@ -1,15 +1,12 @@
-// routes folder playlist.routes.js
 import express from 'express';
 import Playlist from '../models/playlist.js';
 import { authenticateUser } from '../middlwear/auth.js';
 const router = express.Router();
 import multer from 'multer';
 
-
-// Store images in /uploads
 const upload = multer({
     dest: 'uploads/',
-    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+    limits: { fileSize: 5 * 1024 * 1024 },
     fileFilter: (req, file, cb) => {
         if (!file.mimetype.startsWith('image/')) return cb(new Error('Only images allowed'));
         cb(null, true);
@@ -19,7 +16,6 @@ const upload = multer({
 router.post('/create', authenticateUser, upload.single('image'), async (req, res) => {
     const { name, description, privacy, tracks } = req.body;
 
-    // 👇 make sure this is declared as a variable
     const image = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {

@@ -1,4 +1,3 @@
-// utils/fetchSpotifyTracks.js
 import axios from 'axios';
 import qs from 'qs';
 import dotenv from 'dotenv';
@@ -64,7 +63,7 @@ export const fetchSpotifyTracks = async (query = "lofi chill beats") => {
 
         allTracks.push(...simplified);
 
-        if (items.length < 50) break; // last page
+        if (items.length < 50) break;
     }
 
     return allTracks;

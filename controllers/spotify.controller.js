@@ -28,7 +28,7 @@ const getSpotifyAccessToken = async () => {
     );
 
     accessToken = response.data.access_token;
-    tokenExpiresAt = Date.now() + response.data.expires_in * 1000 - 60000; // 1 min early
+    tokenExpiresAt = Date.now() + response.data.expires_in * 1000 - 60000;
     return accessToken;
 };
 
@@ -70,7 +70,7 @@ export const searchSpotifyTracks = async (req, res) => {
 
         res.json({ tracks: allTracks });
     } catch (err) {
-        console.error('❌ Spotify Error:', {
+        console.error(' Spotify Error:', {
             message: err.message,
             status: err.response?.status,
             data: err.response?.data,
