@@ -4,8 +4,11 @@ import {
     loginUser,
     googleCallback,
     googleLogin,
-    getUserInfo
+    getUserInfo,
+    updateUserProfile // ✅ Add this line
+
 } from '../controllers/auth.controller.js';
+import {authenticateUser} from "../middlwear/auth.js";
 
 const router = express.Router();
 console.log("✅ auth.routes.js file loaded");
@@ -19,5 +22,7 @@ router.post('/login', loginUser);
 router.get('/google', googleLogin);
 router.get('/google/callback', googleCallback);
 router.get('/user/:id', getUserInfo);
+router.put('/user/update', authenticateUser, updateUserProfile);
+
 
 export default router;
