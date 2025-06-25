@@ -1,3 +1,4 @@
+
 import mongoose from 'mongoose';
 
 const trackSchema = new mongoose.Schema({
@@ -7,12 +8,12 @@ const trackSchema = new mongoose.Schema({
 }, { _id: false });
 
 const playlistSchema = new mongoose.Schema({
-    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }, // link to user
     name: { type: String, default: 'Untitled Playlist' },
     description: { type: String, default: 'No Description' },
     privacy: { type: String, enum: ['Public', 'Private'], default: 'Public' },
-    image: { type: String, default: '' },
-    tracks: [trackSchema],
+    image: { type: String, default: '' }, // cover image URL or base64 string
+    tracks: [trackSchema], // array of tracks
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

@@ -13,9 +13,10 @@ app.use(cors());
 app.use(express.json());
 
 
+console.log("✅ Mounting /api/auth routes");
 app.use('/api/auth', authRoutes);
-
 app.use('/api/playlist', playlistRoutes);
+
 
 app.get('/', (req, res) => {
     res.send('API is running');
@@ -36,8 +37,10 @@ app.post('/test-ai', async (req, res) => {
 
 connectToDatabase()
     .then(() => {
-        app.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+        app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
     })
     .catch((err) => {
-        console.error(' Failed to connect to DB:', err.message);
-        process.exit(1);});
+        console.error('❌ Failed to connect to DB:', err.message);
+        process.exit(1);
+    });
+

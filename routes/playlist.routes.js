@@ -1,3 +1,4 @@
+// routes folder playlist.routes.js
 import express from 'express';
 import Playlist from '../models/playlist.js';
 import { authenticateUser } from '../middlwear/auth.js';
