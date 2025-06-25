@@ -12,7 +12,7 @@ const playlistSchema = new mongoose.Schema({
     name: { type: String, default: 'Untitled Playlist' },
     description: { type: String, default: 'No Description' },
     privacy: { type: String, enum: ['Public', 'Private'], default: 'Public' },
-    image: { type: String, default: '' }, // cover image URL or base64 string
+    image: { type: String, default: '' } ,// now this is just a file path
     tracks: [trackSchema], // array of tracks
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }

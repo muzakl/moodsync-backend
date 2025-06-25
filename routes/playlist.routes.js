@@ -3,9 +3,24 @@ import express from 'express';
 import Playlist from '../models/playlist.js';
 import { authenticateUser } from '../middlwear/auth.js';
 const router = express.Router();
+import multer from 'multer';
 
-router.post('/create', authenticateUser, async (req, res) => {
-    const { name, description, privacy, image, tracks } = req.body;
+
+// Store images in /uploads
+const upload = multer({
+    dest: 'uploads/',
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB max
+    fileFilter: (req, file, cb) => {
+        if (!file.mimetype.startsWith('image/')) return cb(new Error('Only images allowed'));
+        cb(null, true);
+    }
+});
+
+router.post('/create', authenticateUser, upload.single('image'), async (req, res) => {
+    const { name, description, privacy, tracks } = req.body;
+
+    // 👇 make sure this is declared as a variable
+    const image = req.file ? `/uploads/${req.file.filename}` : '';
 
     try {
         const playlist = new Playlist({
@@ -14,7 +29,7 @@ router.post('/create', authenticateUser, async (req, res) => {
             description,
             privacy,
             image,
-            tracks
+            tracks: JSON.parse(tracks)
         });
 
         await playlist.save();
