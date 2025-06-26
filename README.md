@@ -153,9 +153,3 @@ Authorization: Bearer <your_token>
 MIT License
 
 
-## Authors
-
-Dea Dumbadze
-Nikoloz Ramishvili
-Giorgi Maisuradze
-Giorgi Muzashvili
